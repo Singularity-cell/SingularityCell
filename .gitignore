@@ -1,1 +1,2 @@
-node_modules/.workbuddy
+node_modules/
+/.workbuddy/
