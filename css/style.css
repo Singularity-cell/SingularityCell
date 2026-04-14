@@ -17,7 +17,7 @@ body {
     --link-size: 14px;
 }
 
-header {
+.nav {
     position: fixed;
     top: 0;
     left: 0;
