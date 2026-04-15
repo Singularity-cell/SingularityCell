@@ -1,0 +1,2311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>矩阵运算可视化</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        /* ===================== 全局重置 & 变量 ===================== */
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --surface2: #21262d;
+            --border: #30363d;
+            --accent: #58a6ff;
+            --accent2: #f78166;
+            --accent3: #3fb950;
+            --accent4: #d2a8ff;
+            --text: #e6edf3;
+            --text-dim: #8b949e;
+            --highlight: rgba(88, 166, 255, 0.18);
+            --highlight2: rgba(247, 129, 102, 0.18);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        /* ===================== 顶部标题 ===================== */
+        header {
+            text-align: center;
+            padding: 40px 20px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--accent), var(--accent4));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            color: var(--text-dim);
+            margin-top: 8px;
+            font-size: 0.95rem;
+        }
+
+        /* ===================== 主容器 ===================== */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ===================== 区块卡片 ===================== */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 24px;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        /* ===================== 矩阵输入区 ===================== */
+        .matrix-inputs {
+            display: flex;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+
+        .matrix-input-block {
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .matrix-label {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        .matrix-label.b {
+            color: var(--accent2);
+        }
+
+        /* 行列控制 */
+        .size-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .size-controls label {
+            color: var(--text-dim);
+            font-size: 0.88rem;
+        }
+
+        .size-controls input[type=number] {
+            width: 52px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            padding: 4px 8px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .size-controls input[type=number]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn-gen {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            padding: 5px 14px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: opacity .2s;
+        }
+
+        .btn-gen:hover {
+            opacity: .8;
+        }
+
+        /* 矩阵网格 */
+        .matrix-grid {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 4px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            position: relative;
+        }
+
+        /* 方括号装饰 */
+        .matrix-grid::before,
+        .matrix-grid::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            bottom: 6px;
+            width: 5px;
+            border: 2px solid var(--text-dim);
+        }
+
+        .matrix-grid::before {
+            left: 2px;
+            border-right: none;
+            border-radius: 3px 0 0 3px;
+        }
+
+        .matrix-grid::after {
+            right: 2px;
+            border-left: none;
+            border-radius: 0 3px 3px 0;
+        }
+
+        .matrix-row {
+            display: flex;
+            gap: 4px;
+        }
+
+        .matrix-cell {
+            width: 56px;
+            height: 36px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            color: var(--text);
+            font-size: 0.95rem;
+            text-align: center;
+            transition: border-color .2s, background .2s;
+        }
+
+        .matrix-cell:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--highlight);
+        }
+
+        .matrix-cell.highlight-row {
+            background: var(--highlight);
+            border-color: var(--accent);
+        }
+
+        .matrix-cell.highlight-col {
+            background: var(--highlight2);
+            border-color: var(--accent2);
+        }
+
+        .matrix-cell.highlight-result {
+            background: rgba(63, 185, 80, .22);
+            border-color: var(--accent3);
+        }
+
+        /* ===================== 运算按钮区 ===================== */
+        .ops-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .op-btn {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 9px 18px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all .2s;
+        }
+
+        .op-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--highlight);
+        }
+
+        .op-btn.active {
+            border-color: var(--accent);
+            background: var(--highlight);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* 数乘输入 */
+        .scalar-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .scalar-row input {
+            width: 70px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            padding: 6px 10px;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .scalar-row input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .scalar-row label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* ===================== 结果展示区 ===================== */
+        #result-area {
+            min-height: 60px;
+        }
+
+        /* 步骤块 */
+        .step-block {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 14px;
+            animation: fadeIn .35s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-title {
+            font-size: 0.82rem;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        .step-formula {
+            font-size: 1rem;
+            color: var(--accent4);
+            margin-bottom: 10px;
+            font-family: "Courier New", monospace;
+            line-height: 1.7;
+        }
+
+        .step-formula .hi-a {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .step-formula .hi-b {
+            color: var(--accent2);
+            font-weight: 700;
+        }
+
+        .step-formula .hi-r {
+            color: var(--accent3);
+            font-weight: 700;
+        }
+
+        /* 矩阵展示（只读） */
+        .matrix-display {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 3px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            position: relative;
+            vertical-align: middle;
+        }
+
+        .matrix-display::before,
+        .matrix-display::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            width: 4px;
+            border: 2px solid var(--text-dim);
+        }
+
+        .matrix-display::before {
+            left: 2px;
+            border-right: none;
+            border-radius: 3px 0 0 3px;
+        }
+
+        .matrix-display::after {
+            right: 2px;
+            border-left: none;
+            border-radius: 0 3px 3px 0;
+        }
+
+        .matrix-display .drow {
+            display: flex;
+            gap: 3px;
+        }
+
+        .matrix-display .dcell {
+            width: 52px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            transition: all .3s;
+        }
+
+        .dcell.hi-a {
+            background: var(--highlight);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .dcell.hi-b {
+            background: var(--highlight2);
+            border-color: var(--accent2);
+            color: var(--accent2);
+        }
+
+        .dcell.hi-r {
+            background: rgba(63, 185, 80, .22);
+            border-color: var(--accent3);
+            color: var(--accent3);
+        }
+
+        .dcell.hi-scalar {
+            background: rgba(210, 168, 255, .18);
+            border-color: var(--accent4);
+            color: var(--accent4);
+        }
+
+        /* 运算符号 */
+        .op-sym {
+            font-size: 1.6rem;
+            color: var(--text-dim);
+            margin: 0 10px;
+            vertical-align: middle;
+        }
+
+        .eq-sym {
+            color: var(--accent3);
+        }
+
+        /* 乘法分步 */
+        .mult-steps {
+            margin-top: 12px;
+        }
+
+        .mult-step-item {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 8px 10px;
+            border-radius: 7px;
+            margin-bottom: 6px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            font-size: 0.92rem;
+            animation: fadeIn .3s ease;
+        }
+
+        .mult-step-item .dot-label {
+            color: var(--text-dim);
+            font-size: 0.82rem;
+            margin: 0 4px;
+        }
+
+        .mult-step-item .sum-eq {
+            color: var(--accent3);
+            font-weight: 700;
+        }
+
+        /* 进度按钮 */
+        .step-nav {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            align-items: center;
+        }
+
+        .btn-step {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 7px;
+            padding: 7px 18px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: opacity .2s;
+        }
+
+        .btn-step:hover {
+            opacity: .8;
+        }
+
+        .btn-step:disabled {
+            opacity: .3;
+            cursor: not-allowed;
+        }
+
+        .step-counter {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        /* 标量大数展示 */
+        .big-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent3);
+            margin-top: 8px;
+        }
+
+        /* 错误提示 */
+        .error-msg {
+            color: var(--accent2);
+            background: rgba(247, 129, 102, .1);
+            border: 1px solid var(--accent2);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.9rem;
+        }
+
+        /* 分隔线 */
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 20px 0;
+        }
+
+        /* ===================== 页面 Tab 切换 ===================== */
+        .page-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--border);
+            margin: 24px 0 0;
+        }
+
+        .page-tab {
+            padding: 12px 28px;
+            cursor: pointer;
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all .2s;
+        }
+
+        .page-tab:hover {
+            color: var(--text);
+        }
+
+        .page-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            font-weight: 700;
+        }
+
+        .page-panel {
+            display: none;
+        }
+
+        .page-panel.active {
+            display: block;
+        }
+
+        /* ===================== 向量模块 ===================== */
+        .vec-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 24px;
+        }
+
+        /* 向量输入行 */
+        .vec-input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .vec-input-row label {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            min-width: 32px;
+        }
+
+        .vec-cell {
+            width: 60px;
+            height: 34px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            color: var(--text);
+            font-size: 0.95rem;
+            text-align: center;
+            transition: border-color .2s;
+        }
+
+        .vec-cell:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--highlight);
+        }
+
+        .vec-dim-ctrl {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .vec-dim-ctrl input[type=number] {
+            width: 52px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            padding: 4px 8px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .vec-dim-ctrl input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* 向量括号展示 */
+        .vec-display {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 3px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            position: relative;
+            vertical-align: middle;
+        }
+
+        .vec-display::before,
+        .vec-display::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            width: 4px;
+            border: 2px solid var(--text-dim);
+        }
+
+        .vec-display::before {
+            left: 2px;
+            border-right: none;
+            border-radius: 3px 0 0 3px;
+        }
+
+        .vec-display::after {
+            right: 2px;
+            border-left: none;
+            border-radius: 0 3px 3px 0;
+        }
+
+        .vec-display .vcell {
+            min-width: 44px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.93rem;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            transition: all .3s;
+        }
+
+        .vcell.hi-a {
+            background: var(--highlight);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .vcell.hi-b {
+            background: var(--highlight2);
+            border-color: var(--accent2);
+            color: var(--accent2);
+        }
+
+        .vcell.hi-r {
+            background: rgba(63, 185, 80, .22);
+            border-color: var(--accent3);
+            color: var(--accent3);
+        }
+
+        /* 向量子tab */
+        .vec-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .vec-tab {
+            padding: 7px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.88rem;
+            transition: all .2s;
+        }
+
+        .vec-tab:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .vec-tab.active {
+            background: var(--highlight);
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .vec-panel {
+            display: none;
+        }
+
+        .vec-panel.active {
+            display: block;
+        }
+
+        /* Canvas 可视化区域 */
+        .canvas-wrap {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #vec-canvas {
+            border-radius: 8px;
+            display: block;
+        }
+
+        .canvas-legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 4px;
+            border-radius: 2px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .matrix-inputs {
+                flex-direction: column;
+            }
+
+            header h1 {
+                font-size: 1.4rem;
+            }
+
+            .page-tab {
+                padding: 10px 14px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+
+<script>
+    // 加载公共导航栏
+    fetch('header.html')
+        .then(response => response.text())
+        .then(data => {
+            document.body.insertAdjacentHTML('afterbegin', data);
+        });
+</script>
+
+<body>
+
+    <header>
+        <h1>矩阵运算可视化</h1>
+        <p>输入矩阵 → 选择运算 → 查看每一步的计算过程</p>
+    </header>
+
+    <div class="container">
+
+        <!-- 页面主Tab -->
+        <div class="page-tabs">
+            <div class="page-tab active" onclick="switchPage('matrix', this)">矩阵运算</div>
+            <div class="page-tab" onclick="switchPage('vector', this)">向量演示</div>
+        </div>
+
+        <!-- 矩阵运算面板 -->
+        <div id="page-matrix" class="page-panel active">
+
+            <!-- ① 矩阵输入 -->
+            <div class="card">
+                <div class="card-title">输入矩阵</div>
+                <div class="matrix-inputs">
+
+                    <!-- 矩阵 A -->
+                    <div class="matrix-input-block">
+                        <div class="matrix-label">矩阵 A</div>
+                        <div class="size-controls">
+                            <label>行</label>
+                            <input type="number" id="a-rows" value="2" min="1" max="5" />
+                            <label>列</label>
+                            <input type="number" id="a-cols" value="2" min="1" max="5" />
+                            <button class="btn-gen" onclick="buildGrid('A')">生成</button>
+                        </div>
+                        <div id="grid-A"></div>
+                    </div>
+
+                    <!-- 矩阵 B -->
+                    <div class="matrix-input-block">
+                        <div class="matrix-label b">矩阵 B</div>
+                        <div class="size-controls">
+                            <label>行</label>
+                            <input type="number" id="b-rows" value="2" min="1" max="5" />
+                            <label>列</label>
+                            <input type="number" id="b-cols" value="2" min="1" max="5" />
+                            <button class="btn-gen" onclick="buildGrid('B')">生成</button>
+                        </div>
+                        <div id="grid-B"></div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ② 选择运算 -->
+            <div class="card">
+                <div class="card-title">选择运算</div>
+                <div class="ops-grid">
+                    <button class="op-btn" onclick="runOp('add')">A + B &nbsp;加法</button>
+                    <button class="op-btn" onclick="runOp('sub')">A − B &nbsp;减法</button>
+                    <button class="op-btn" onclick="runOp('scalar')">k × A &nbsp;数乘</button>
+                    <button class="op-btn" onclick="runOp('mult')">A × B &nbsp;矩阵乘法</button>
+                    <button class="op-btn" onclick="runOp('transposeA')">Aᵀ &nbsp;A 转置</button>
+                    <button class="op-btn" onclick="runOp('transposeB')">Bᵀ &nbsp;B 转置</button>
+                    <button class="op-btn" onclick="runOp('detA')">det(A) &nbsp;A 行列式</button>
+                    <button class="op-btn" onclick="runOp('detB')">det(B) &nbsp;B 行列式</button>
+                    <button class="op-btn" onclick="runOp('invA')">A⁻¹ &nbsp;A 逆矩阵</button>
+                    <button class="op-btn" onclick="runOp('invB')">B⁻¹ &nbsp;B 逆矩阵</button>
+                </div>
+                <!-- 数乘系数输入 -->
+                <div class="scalar-row" id="scalar-input" style="display:none">
+                    <label>系数 k =</label>
+                    <input type="number" id="scalar-k" value="2" />
+                </div>
+            </div>
+
+            <!-- ③ 结果展示 -->
+            <div class="card">
+                <div class="card-title">运算过程 &amp; 结果</div>
+                <div id="result-area">
+                    <p style="color:var(--text-dim);font-size:.9rem;">选择上方运算后，这里会显示每一步的计算过程。</p>
+                </div>
+            </div>
+
+        </div><!-- /page-matrix -->
+
+        <!-- 向量演示面板 -->
+        <div id="page-vector" class="page-panel">
+
+            <!-- 子功能 Tab -->
+            <div class="vec-section" style="margin-top:24px;">
+                <div class="card-title">选择演示类型</div>
+                <div class="vec-tabs">
+                    <div class="vec-tab active" onclick="switchVecTab('dot',this)">🔵 点积（行·列）</div>
+                    <div class="vec-tab" onclick="switchVecTab('outer',this)">🟣 外积（列×行）</div>
+                    <div class="vec-tab" onclick="switchVecTab('matvec',this)">🟠 矩阵×向量（线性变换）</div>
+                    <div class="vec-tab" onclick="switchVecTab('visual',this)">🟢 2D 向量可视化</div>
+                </div>
+
+                <!-- ① 点积 -->
+                <div id="vp-dot" class="vec-panel active">
+                    <div class="card-title" style="margin-bottom:16px;">行向量 · 列向量 = 标量（点积）</div>
+                    <div style="color:var(--text-dim);font-size:.88rem;margin-bottom:14px;">
+                        点积原理：<strong>对应位置相乘，再求和</strong>。<br>
+                        两向量维度必须相同。结果是一个数（标量）。
+                    </div>
+                    <div class="vec-dim-ctrl">
+                        <label style="color:var(--text-dim);font-size:.88rem;">向量维度</label>
+                        <input type="number" id="dot-dim" value="3" min="1" max="8" />
+                        <button class="btn-gen" onclick="buildDotInputs()">生成</button>
+                    </div>
+                    <div style="display:flex;gap:32px;flex-wrap:wrap;margin-bottom:16px;">
+                        <div>
+                            <div style="color:var(--accent);font-weight:700;margin-bottom:8px;">向量 a（行向量）</div>
+                            <div id="dot-vec-a" class="vec-input-row"></div>
+                        </div>
+                        <div>
+                            <div style="color:var(--accent2);font-weight:700;margin-bottom:8px;">向量 b（列向量）</div>
+                            <div id="dot-vec-b" class="vec-input-row"></div>
+                        </div>
+                    </div>
+                    <button class="op-btn" style="margin-bottom:16px;" onclick="runDot()">计算点积 a · b</button>
+                    <div id="dot-result"></div>
+                </div>
+
+                <!-- ② 外积 -->
+                <div id="vp-outer" class="vec-panel">
+                    <div class="card-title" style="margin-bottom:16px;">列向量 × 行向量 = 矩阵（外积）</div>
+                    <div style="color:var(--text-dim);font-size:.88rem;margin-bottom:14px;">
+                        外积原理：m维列向量 × n维行向量 → m×n 的矩阵。<br>
+                        结果矩阵的 <strong>R[i][j] = a[i] × b[j]</strong>。
+                    </div>
+                    <div class="vec-dim-ctrl">
+                        <label style="color:var(--text-dim);font-size:.88rem;">a 维度</label>
+                        <input type="number" id="outer-dim-a" value="3" min="1" max="5" />
+                        <label style="color:var(--text-dim);font-size:.88rem;">b 维度</label>
+                        <input type="number" id="outer-dim-b" value="3" min="1" max="5" />
+                        <button class="btn-gen" onclick="buildOuterInputs()">生成</button>
+                    </div>
+                    <div style="display:flex;gap:32px;flex-wrap:wrap;margin-bottom:16px;">
+                        <div>
+                            <div style="color:var(--accent);font-weight:700;margin-bottom:8px;">列向量 a</div>
+                            <div id="outer-vec-a" class="vec-input-row"></div>
+                        </div>
+                        <div>
+                            <div style="color:var(--accent2);font-weight:700;margin-bottom:8px;">行向量 b</div>
+                            <div id="outer-vec-b" class="vec-input-row"></div>
+                        </div>
+                    </div>
+                    <button class="op-btn" style="margin-bottom:16px;" onclick="runOuter()">计算外积 a ⊗ b</button>
+                    <div id="outer-result"></div>
+                </div>
+
+                <!-- ③ 矩阵×向量 -->
+                <div id="vp-matvec" class="vec-panel">
+                    <div class="card-title" style="margin-bottom:16px;">矩阵 × 列向量 = 线性变换</div>
+                    <div style="color:var(--text-dim);font-size:.88rem;margin-bottom:14px;">
+                        矩阵把一个向量"变换"成另一个向量。<br>
+                        结果向量的 <strong>R[i] = A 的第 i 行 · 向量 x</strong>（点积）。
+                    </div>
+                    <div class="vec-dim-ctrl">
+                        <label style="color:var(--text-dim);font-size:.88rem;">矩阵行数</label>
+                        <input type="number" id="mv-rows" value="2" min="1" max="5" />
+                        <label style="color:var(--text-dim);font-size:.88rem;">矩阵列数（= 向量维度）</label>
+                        <input type="number" id="mv-cols" value="2" min="1" max="5" />
+                        <button class="btn-gen" onclick="buildMatVecInputs()">生成</button>
+                    </div>
+                    <div style="display:flex;gap:32px;flex-wrap:wrap;margin-bottom:16px;">
+                        <div>
+                            <div style="color:var(--accent);font-weight:700;margin-bottom:8px;">矩阵 A</div>
+                            <div id="mv-grid"></div>
+                        </div>
+                        <div>
+                            <div style="color:var(--accent2);font-weight:700;margin-bottom:8px;">列向量 x</div>
+                            <div id="mv-vec"></div>
+                        </div>
+                    </div>
+                    <button class="op-btn" style="margin-bottom:16px;" onclick="runMatVec()">计算 A × x</button>
+                    <div id="mv-result"></div>
+                </div>
+
+                <!-- ④ 2D 可视化 -->
+                <div id="vp-visual" class="vec-panel">
+                    <div class="card-title" style="margin-bottom:16px;">2D 向量可视化</div>
+                    <div style="color:var(--text-dim);font-size:.88rem;margin-bottom:16px;">
+                        在坐标系中看向量的加法、数乘效果。
+                    </div>
+                    <div style="display:flex;gap:32px;flex-wrap:wrap;margin-bottom:16px;">
+                        <div>
+                            <div style="color:var(--accent);font-weight:700;margin-bottom:8px;">向量 a = (x, y)</div>
+                            <div class="vec-input-row">
+                                <label>x</label>
+                                <input type="number" class="vec-cell" id="vis-ax" value="2" />
+                                <label>y</label>
+                                <input type="number" class="vec-cell" id="vis-ay" value="1" />
+                            </div>
+                        </div>
+                        <div>
+                            <div style="color:var(--accent2);font-weight:700;margin-bottom:8px;">向量 b = (x, y)</div>
+                            <div class="vec-input-row">
+                                <label>x</label>
+                                <input type="number" class="vec-cell" id="vis-bx" value="1" />
+                                <label>y</label>
+                                <input type="number" class="vec-cell" id="vis-by" value="3" />
+                            </div>
+                        </div>
+                        <div>
+                            <div style="color:var(--accent4);font-weight:700;margin-bottom:8px;">数乘系数 k</div>
+                            <div class="vec-input-row">
+                                <input type="number" class="vec-cell" id="vis-k" value="2" step="0.5" />
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+                        <button class="op-btn" onclick="visMode('add')">a + b 加法</button>
+                        <button class="op-btn" onclick="visMode('sub')">a − b 减法</button>
+                        <button class="op-btn" onclick="visMode('scale')">k × a 数乘</button>
+                        <button class="op-btn" onclick="visMode('both')">同时显示 a 和 b</button>
+                    </div>
+                    <div class="canvas-wrap">
+                        <canvas id="vec-canvas" width="480" height="480"></canvas>
+                        <div class="canvas-legend" id="vis-legend"></div>
+                    </div>
+                    <div id="vis-desc" class="step-block" style="margin-top:14px;display:none;"></div>
+                </div>
+
+            </div><!-- /vec-section -->
+        </div><!-- /page-vector -->
+
+    </div><!-- /container -->
+
+    <script>
+        // ================================================================
+        //  工具函数
+        // ================================================================
+
+        /** 从 HTML 输入格读取矩阵，返回二维数组 */
+        function readMatrix(id) {
+            const grid = document.getElementById('grid-' + id);
+            const rows = grid.querySelectorAll('.matrix-row');
+            return Array.from(rows).map(row =>
+                Array.from(row.querySelectorAll('.matrix-cell'))
+                    .map(cell => parseFloat(cell.value) || 0)
+            );
+        }
+
+        /** 构建可输入的矩阵网格 */
+        function buildGrid(id) {
+            const r = parseInt(document.getElementById(id.toLowerCase() + '-rows').value) || 2;
+            const c = parseInt(document.getElementById(id.toLowerCase() + '-cols').value) || 2;
+            const container = document.getElementById('grid-' + id);
+
+            // 保留旧值
+            const old = readMatrix(id);
+
+            container.innerHTML = '';
+            const wrap = document.createElement('div');
+            wrap.className = 'matrix-grid';
+
+            for (let i = 0; i < r; i++) {
+                const rowEl = document.createElement('div');
+                rowEl.className = 'matrix-row';
+                for (let j = 0; j < c; j++) {
+                    const inp = document.createElement('input');
+                    inp.type = 'number';
+                    inp.className = 'matrix-cell';
+                    inp.dataset.row = i;
+                    inp.dataset.col = j;
+                    // 保留旧值，新位置默认 0
+                    inp.value = (old[i] && old[i][j] !== undefined) ? old[i][j] : 0;
+                    rowEl.appendChild(inp);
+                }
+                wrap.appendChild(rowEl);
+            }
+            container.appendChild(wrap);
+        }
+
+        /** 把二维数组渲染成只读矩阵展示块，可传入高亮规则 */
+        function renderMatrixDisplay(mat, highlights = {}) {
+            // highlights: { "i,j": "hi-a" | "hi-b" | "hi-r" | "hi-scalar" }
+            const div = document.createElement('div');
+            div.className = 'matrix-display';
+            mat.forEach((row, i) => {
+                const rowEl = document.createElement('div');
+                rowEl.className = 'drow';
+                row.forEach((val, j) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'dcell';
+                    const key = i + ',' + j;
+                    if (highlights[key]) cell.classList.add(highlights[key]);
+                    cell.textContent = fmt(val);
+                    rowEl.appendChild(cell);
+                });
+                div.appendChild(rowEl);
+            });
+            return div;
+        }
+
+        /** 数字格式化：最多4位小数，去掉末尾0 */
+        function fmt(v) {
+            if (Number.isInteger(v)) return v;
+            return parseFloat(v.toFixed(4)).toString();
+        }
+
+        /** 符号 span */
+        function sym(s, extra = '') {
+            const sp = document.createElement('span');
+            sp.className = 'op-sym ' + extra;
+            sp.textContent = s;
+            return sp;
+        }
+
+        /** 错误块 */
+        function errBlock(msg) {
+            const d = document.createElement('div');
+            d.className = 'error-msg';
+            d.textContent = '⚠️  ' + msg;
+            return d;
+        }
+
+        /** 步骤块容器 */
+        function stepBlock(titleText) {
+            const d = document.createElement('div');
+            d.className = 'step-block';
+            const t = document.createElement('div');
+            t.className = 'step-title';
+            t.textContent = titleText;
+            d.appendChild(t);
+            return d;
+        }
+
+        // ================================================================
+        //  运算逻辑
+        // ================================================================
+
+        /** 矩阵加 / 减 */
+        function addSub(A, B, isAdd) {
+            const sym = isAdd ? '+' : '−';
+            const rA = A.length, cA = A[0].length;
+            const rB = B.length, cB = B[0].length;
+            if (rA !== rB || cA !== cB) return null;
+
+            const R = A.map((row, i) => row.map((v, j) => isAdd ? v + B[i][j] : v - B[i][j]));
+            return { R, sym };
+        }
+
+        /** 数乘 */
+        function scalarMult(A, k) {
+            return A.map(row => row.map(v => v * k));
+        }
+
+        /** 转置 */
+        function transpose(A) {
+            return A[0].map((_, j) => A.map(row => row[j]));
+        }
+
+        /** 矩阵乘法，返回结果和分步信息 */
+        function matMult(A, B) {
+            const rA = A.length, cA = A[0].length;
+            const rB = B.length, cB = B[0].length;
+            if (cA !== rB) return null;
+
+            const R = Array.from({ length: rA }, () => Array(cB).fill(0));
+            const steps = []; // 每个结果位置的计算步骤
+
+            for (let i = 0; i < rA; i++) {
+                for (let j = 0; j < cB; j++) {
+                    let sum = 0;
+                    const terms = [];
+                    for (let k = 0; k < cA; k++) {
+                        sum += A[i][k] * B[k][j];
+                        terms.push({ aVal: A[i][k], bVal: B[k][j], aPos: [i, k], bPos: [k, j] });
+                    }
+                    R[i][j] = sum;
+                    steps.push({ i, j, terms, result: sum });
+                }
+            }
+            return { R, steps };
+        }
+
+        /** 行列式（递归展开，支持任意方阵） */
+        function det(M) {
+            const n = M.length;
+            if (M.some(r => r.length !== n)) return NaN; // 必须方阵
+            if (n === 1) return M[0][0];
+            if (n === 2) return M[0][0] * M[1][1] - M[0][1] * M[1][0];
+            let d = 0;
+            for (let j = 0; j < n; j++) {
+                d += Math.pow(-1, j) * M[0][j] * det(minor(M, 0, j));
+            }
+            return d;
+        }
+
+        /** 余子式（去掉第r行第c列） */
+        function minor(M, r, c) {
+            return M.filter((_, i) => i !== r).map(row => row.filter((_, j) => j !== c));
+        }
+
+        /** 逆矩阵（伴随矩阵法） */
+        function inverse(M) {
+            const n = M.length;
+            if (M.some(r => r.length !== n)) return null;
+            const d = det(M);
+            if (Math.abs(d) < 1e-10) return null; // 奇异矩阵
+
+            // 伴随矩阵
+            const adj = Array.from({ length: n }, () => Array(n).fill(0));
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    adj[j][i] = Math.pow(-1, i + j) * det(minor(M, i, j)); // 注意转置
+                }
+            }
+            return adj.map(row => row.map(v => v / d));
+        }
+
+        // ================================================================
+        //  渲染结果
+        // ================================================================
+
+        let currentOp = '';
+
+        function runOp(op) {
+            currentOp = op;
+            // 高亮按钮
+            document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // 数乘显示输入框
+            document.getElementById('scalar-input').style.display = (op === 'scalar') ? 'flex' : 'none';
+
+            const area = document.getElementById('result-area');
+            area.innerHTML = '';
+
+            try {
+                if (op === 'add' || op === 'sub') renderAddSub(op === 'add');
+                else if (op === 'scalar') renderScalar();
+                else if (op === 'mult') renderMult();
+                else if (op === 'transposeA') renderTranspose('A');
+                else if (op === 'transposeB') renderTranspose('B');
+                else if (op === 'detA') renderDet('A');
+                else if (op === 'detB') renderDet('B');
+                else if (op === 'invA') renderInv('A');
+                else if (op === 'invB') renderInv('B');
+            } catch (e) {
+                area.appendChild(errBlock('发生错误：' + e.message));
+            }
+        }
+
+        // ── 加/减 ──────────────────────────────────────────────
+        function renderAddSub(isAdd) {
+            const A = readMatrix('A'), B = readMatrix('B');
+            const res = addSub(A, B, isAdd);
+            const area = document.getElementById('result-area');
+
+            if (!res) {
+                area.appendChild(errBlock('矩阵加减法要求两矩阵的行数和列数完全相同。'));
+                return;
+            }
+
+            // 步骤1：规则说明
+            const s1 = stepBlock('规则');
+            const f1 = document.createElement('div');
+            f1.className = 'step-formula';
+            f1.innerHTML = `矩阵加减法：<span class="hi-r">结果[i][j]</span> = <span class="hi-a">A[i][j]</span> ${isAdd ? '+' : '−'} <span class="hi-b">B[i][j]</span><br>
+    即对应位置元素直接相加（减），两矩阵尺寸必须完全相同。`;
+            s1.appendChild(f1);
+            area.appendChild(s1);
+
+            // 步骤2：逐位计算
+            const s2 = stepBlock('逐位计算过程');
+            const R = res.R;
+            for (let i = 0; i < A.length; i++) {
+                for (let j = 0; j < A[0].length; j++) {
+                    const line = document.createElement('div');
+                    line.className = 'step-formula';
+                    line.innerHTML =
+                        `<span class="hi-r">R[${i}][${j}]</span> = ` +
+                        `<span class="hi-a">${fmt(A[i][j])}</span> ` +
+                        `${isAdd ? '+' : '−'} ` +
+                        `<span class="hi-b">${fmt(B[i][j])}</span> ` +
+                        `= <span class="hi-r">${fmt(R[i][j])}</span>`;
+                    s2.appendChild(line);
+                }
+            }
+            area.appendChild(s2);
+
+            // 步骤3：矩阵式展示
+            const s3 = stepBlock('完整运算式');
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;';
+            row.appendChild(renderMatrixDisplay(A));
+            row.appendChild(sym(isAdd ? '+' : '−'));
+            row.appendChild(renderMatrixDisplay(B));
+            row.appendChild(sym('=', 'eq-sym'));
+            row.appendChild(renderMatrixDisplay(R));
+            s3.appendChild(row);
+            area.appendChild(s3);
+        }
+
+        // ── 数乘 ──────────────────────────────────────────────
+        function renderScalar() {
+            const A = readMatrix('A');
+            const k = parseFloat(document.getElementById('scalar-k').value) || 0;
+            const R = scalarMult(A, k);
+            const area = document.getElementById('result-area');
+
+            const s1 = stepBlock('规则');
+            const f1 = document.createElement('div');
+            f1.className = 'step-formula';
+            f1.innerHTML = `数乘：<span class="hi-scalar" style="color:var(--accent4)">k</span> × A 就是把矩阵 A 的<strong>每一个元素</strong>都乘以标量 k。`;
+            s1.appendChild(f1);
+            area.appendChild(s1);
+
+            const s2 = stepBlock('逐位计算过程');
+            for (let i = 0; i < A.length; i++) {
+                for (let j = 0; j < A[0].length; j++) {
+                    const line = document.createElement('div');
+                    line.className = 'step-formula';
+                    line.innerHTML =
+                        `<span class="hi-r">R[${i}][${j}]</span> = ` +
+                        `<span style="color:var(--accent4)">${fmt(k)}</span> × ` +
+                        `<span class="hi-a">${fmt(A[i][j])}</span> ` +
+                        `= <span class="hi-r">${fmt(R[i][j])}</span>`;
+                    s2.appendChild(line);
+                }
+            }
+            area.appendChild(s2);
+
+            const s3 = stepBlock('完整运算式');
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;';
+            // 高亮全部 A 元素
+            const hiA = {};
+            A.forEach((r, i) => r.forEach((_, j) => hiA[i + ',' + j] = 'hi-scalar'));
+            const hiR = {};
+            R.forEach((r, i) => r.forEach((_, j) => hiR[i + ',' + j] = 'hi-r'));
+            const kSpan = document.createElement('span');
+            kSpan.style.cssText = 'color:var(--accent4);font-size:1.5rem;font-weight:700;';
+            kSpan.textContent = fmt(k);
+            row.appendChild(kSpan);
+            row.appendChild(sym('×'));
+            row.appendChild(renderMatrixDisplay(A, hiA));
+            row.appendChild(sym('=', 'eq-sym'));
+            row.appendChild(renderMatrixDisplay(R, hiR));
+            s3.appendChild(row);
+            area.appendChild(s3);
+        }
+
+        // ── 矩阵乘法（分步） ──────────────────────────────────
+        function renderMult() {
+            const A = readMatrix('A'), B = readMatrix('B');
+            const area = document.getElementById('result-area');
+            const res = matMult(A, B);
+
+            if (!res) {
+                area.appendChild(errBlock(
+                    `矩阵乘法要求：A 的列数 = B 的行数。\n` +
+                    `当前 A 是 ${A.length}×${A[0].length}，B 是 ${B.length}×${B[0].length}，无法相乘。`
+                ));
+                return;
+            }
+
+            const { R, steps } = res;
+
+            // 规则说明
+            const s1 = stepBlock('规则');
+            const f1 = document.createElement('div');
+            f1.className = 'step-formula';
+            f1.innerHTML =
+                `A×B 的结果 <span class="hi-r">R[i][j]</span> = A 的<span class="hi-a">第 i 行</span>与 B 的<span class="hi-b">第 j 列</span>做<strong>点积</strong><br>` +
+                `即：<span class="hi-r">R[i][j]</span> = Σ <span class="hi-a">A[i][k]</span> × <span class="hi-b">B[k][j]</span>，k 从 0 到 ${A[0].length - 1}`;
+            s1.appendChild(f1);
+            area.appendChild(s1);
+
+            // 分步展示：每次点击"下一步"高亮一个位置
+            let stepIdx = 0;
+
+            const s2 = stepBlock('分步计算（点击"下一步"逐个查看每个位置的计算）');
+
+            // 矩阵行展示区
+            const matrices = document.createElement('div');
+            matrices.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;';
+            const dispA = renderMatrixDisplay(A);
+            const dispB = renderMatrixDisplay(B);
+            const dispR = renderMatrixDisplay(R);
+            matrices.appendChild(dispA);
+            matrices.appendChild(sym('×'));
+            matrices.appendChild(dispB);
+            matrices.appendChild(sym('=', 'eq-sym'));
+            matrices.appendChild(dispR);
+            s2.appendChild(matrices);
+
+            // 当前步骤说明
+            const stepDesc = document.createElement('div');
+            stepDesc.className = 'step-formula';
+            stepDesc.style.minHeight = '48px';
+            s2.appendChild(stepDesc);
+
+            // 点积展开行
+            const dotRow = document.createElement('div');
+            dotRow.className = 'mult-step-item';
+            s2.appendChild(dotRow);
+
+            // 导航按钮
+            const nav = document.createElement('div');
+            nav.className = 'step-nav';
+            const btnPrev = document.createElement('button');
+            btnPrev.className = 'btn-step'; btnPrev.textContent = '← 上一步'; btnPrev.disabled = true;
+            const btnNext = document.createElement('button');
+            btnNext.className = 'btn-step'; btnNext.textContent = '下一步 →';
+            const counter = document.createElement('span');
+            counter.className = 'step-counter';
+            nav.appendChild(btnPrev);
+            nav.appendChild(btnNext);
+            nav.appendChild(counter);
+            s2.appendChild(nav);
+
+            function showStep(idx) {
+                // 清除高亮
+                dispA.querySelectorAll('.dcell').forEach(c => c.className = 'dcell');
+                dispB.querySelectorAll('.dcell').forEach(c => c.className = 'dcell');
+                dispR.querySelectorAll('.dcell').forEach(c => c.className = 'dcell');
+                dotRow.innerHTML = '';
+
+                if (idx < 0 || idx >= steps.length) return;
+                const st = steps[idx];
+                const { i, j, terms, result } = st;
+
+                // 高亮 A 的第 i 行
+                dispA.querySelectorAll('.drow').forEach((row, ri) => {
+                    row.querySelectorAll('.dcell').forEach((cell, ci) => {
+                        if (ri === i) cell.classList.add('hi-a');
+                    });
+                });
+                // 高亮 B 的第 j 列
+                dispB.querySelectorAll('.drow').forEach(row => {
+                    row.querySelectorAll('.dcell').forEach((cell, ci) => {
+                        if (ci === j) cell.classList.add('hi-b');
+                    });
+                });
+                // 高亮结果位置
+                dispR.querySelectorAll('.drow').forEach((row, ri) => {
+                    row.querySelectorAll('.dcell').forEach((cell, ci) => {
+                        if (ri === i && ci === j) cell.classList.add('hi-r');
+                    });
+                });
+
+                // 说明文字
+                stepDesc.innerHTML =
+                    `计算 <span class="hi-r">R[${i}][${j}]</span>：` +
+                    `<span class="hi-a">A 的第 ${i} 行</span> · <span class="hi-b">B 的第 ${j} 列</span>`;
+
+                // 点积展开
+                let sumStr = '';
+                terms.forEach((t, ki) => {
+                    if (ki > 0) {
+                        const plus = document.createElement('span');
+                        plus.className = 'dot-label'; plus.textContent = '+';
+                        dotRow.appendChild(plus);
+                    }
+                    const wrap = document.createElement('span');
+                    wrap.style.cssText = 'display:inline-flex;gap:2px;align-items:center;';
+                    const a = document.createElement('span');
+                    a.style.cssText = 'color:var(--accent);font-weight:700;';
+                    a.textContent = fmt(t.aVal);
+                    const x = document.createElement('span');
+                    x.style.color = 'var(--text-dim)'; x.textContent = '×';
+                    const b = document.createElement('span');
+                    b.style.cssText = 'color:var(--accent2);font-weight:700;';
+                    b.textContent = fmt(t.bVal);
+                    wrap.appendChild(a); wrap.appendChild(x); wrap.appendChild(b);
+                    dotRow.appendChild(wrap);
+                });
+                const eq = document.createElement('span');
+                eq.className = 'sum-eq'; eq.textContent = ' = ' + fmt(result);
+                dotRow.appendChild(eq);
+
+                counter.textContent = `步骤 ${idx + 1} / ${steps.length}`;
+                btnPrev.disabled = idx === 0;
+                btnNext.disabled = idx === steps.length - 1;
+                btnNext.textContent = idx === steps.length - 2 ? '完成 ✓' : '下一步 →';
+            }
+
+            btnNext.addEventListener('click', () => { stepIdx++; showStep(stepIdx); });
+            btnPrev.addEventListener('click', () => { stepIdx--; showStep(stepIdx); });
+            showStep(0);
+
+            area.appendChild(s2);
+
+            // 最终结果
+            const s3 = stepBlock('最终结果矩阵');
+            const row3 = document.createElement('div');
+            row3.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;';
+            const hiR3 = {};
+            R.forEach((r, i) => r.forEach((_, j) => hiR3[i + ',' + j] = 'hi-r'));
+            row3.appendChild(renderMatrixDisplay(A));
+            row3.appendChild(sym('×'));
+            row3.appendChild(renderMatrixDisplay(B));
+            row3.appendChild(sym('=', 'eq-sym'));
+            row3.appendChild(renderMatrixDisplay(R, hiR3));
+            s3.appendChild(row3);
+            area.appendChild(s3);
+        }
+
+        // ── 转置 ──────────────────────────────────────────────
+        function renderTranspose(id) {
+            const M = readMatrix(id);
+            const T = transpose(M);
+            const area = document.getElementById('result-area');
+
+            const s1 = stepBlock('规则');
+            const f1 = document.createElement('div');
+            f1.className = 'step-formula';
+            f1.innerHTML = `转置：把矩阵的<strong>行变成列</strong>，<strong>列变成行</strong>。<br>
+    即 <span class="hi-r">Tᵀ[i][j]</span> = <span class="hi-a">T[j][i]</span>`;
+            s1.appendChild(f1);
+            area.appendChild(s1);
+
+            const s2 = stepBlock('逐位对应关系');
+            for (let i = 0; i < M.length; i++) {
+                for (let j = 0; j < M[0].length; j++) {
+                    const line = document.createElement('div');
+                    line.className = 'step-formula';
+                    line.innerHTML =
+                        `原始 <span class="hi-a">M[${i}][${j}] = ${fmt(M[i][j])}</span>  →  ` +
+                        `转置后 <span class="hi-r">Tᵀ[${j}][${i}] = ${fmt(M[i][j])}</span>`;
+                    s2.appendChild(line);
+                }
+            }
+            area.appendChild(s2);
+
+            const s3 = stepBlock('运算结果');
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;';
+            row.appendChild(renderMatrixDisplay(M));
+            row.appendChild(sym('→', 'eq-sym'));
+            const hiT = {};
+            T.forEach((r, i) => r.forEach((_, j) => hiT[i + ',' + j] = 'hi-r'));
+            row.appendChild(renderMatrixDisplay(T, hiT));
+            s3.appendChild(row);
+            area.appendChild(s3);
+        }
+
+        // ── 行列式 ──────────────────────────────────────────────
+        function renderDet(id) {
+            const M = readMatrix(id);
+            const area = document.getElementById('result-area');
+            const n = M.length;
+
+            if (M.some(r => r.length !== n)) {
+                area.appendChild(errBlock('行列式只能对方阵（行数 = 列数）计算。'));
+                return;
+            }
+
+            const s1 = stepBlock('规则');
+            const f1 = document.createElement('div');
+            f1.className = 'step-formula';
+            if (n === 1) {
+                f1.innerHTML = `1×1 矩阵的行列式就是该元素本身。`;
+            } else if (n === 2) {
+                f1.innerHTML =
+                    `2×2 矩阵行列式公式：<br>` +
+                    `det = <span class="hi-a">a×d</span> − <span class="hi-b">b×c</span><br>` +
+                    `其中 a=左上, b=右上, c=左下, d=右下`;
+            } else {
+                f1.innerHTML =
+                    `按第一行<strong>余子式展开</strong>：<br>` +
+                    `det(M) = Σ (−1)^j × M[0][j] × det(去掉第0行第j列的子矩阵)`;
+            }
+            s1.appendChild(f1);
+            area.appendChild(s1);
+
+            const s2 = stepBlock('展开计算');
+            if (n === 2) {
+                const a = M[0][0], b = M[0][1], c = M[1][0], d = M[1][1];
+                const result = det(M);
+                const f2 = document.createElement('div');
+                f2.className = 'step-formula';
+                f2.innerHTML =
+                    `det = <span class="hi-a">${fmt(a)} × ${fmt(d)}</span> − <span class="hi-b">${fmt(b)} × ${fmt(c)}</span><br>` +
+                    `    = <span class="hi-a">${fmt(a * d)}</span> − <span class="hi-b">${fmt(b * c)}</span><br>` +
+                    `    = <span class="hi-r">${fmt(result)}</span>`;
+                s2.appendChild(f2);
+            } else if (n === 1) {
+                const f2 = document.createElement('div');
+                f2.className = 'step-formula';
+                f2.innerHTML = `det = <span class="hi-r">${fmt(M[0][0])}</span>`;
+                s2.appendChild(f2);
+            } else {
+                // 按第一行展开
+                for (let j = 0; j < n; j++) {
+                    const sign = Math.pow(-1, j);
+                    const cofactor = det(minor(M, 0, j));
+                    const contribution = sign * M[0][j] * cofactor;
+                    const line = document.createElement('div');
+                    line.className = 'step-formula';
+                    line.innerHTML =
+                        `j=${j}：<span class="hi-a">(−1)^${j}</span> × ` +
+                        `<span class="hi-b">M[0][${j}]=${fmt(M[0][j])}</span> × ` +
+                        `<span style="color:var(--accent4)">det(子矩阵)=${fmt(cofactor)}</span> = ` +
+                        `<span class="hi-r">${fmt(contribution)}</span>`;
+                    s2.appendChild(line);
+                }
+                const total = document.createElement('div');
+                total.className = 'step-formula';
+                total.innerHTML = `所有项之和 = <span class="hi-r">${fmt(det(M))}</span>`;
+                s2.appendChild(total);
+            }
+            area.appendChild(s2);
+
+            const s3 = stepBlock('结果');
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:8px;';
+            row.appendChild(renderMatrixDisplay(M));
+            const arrow = document.createElement('span');
+            arrow.innerHTML = `<span class="op-sym eq-sym" style="font-size:1.2rem;">det =</span>`;
+            row.appendChild(arrow);
+            const num = document.createElement('div');
+            num.className = 'big-number';
+            num.textContent = fmt(det(M));
+            row.appendChild(num);
+            s3.appendChild(row);
+            area.appendChild(s3);
+        }
+
+        // ── 逆矩阵 ──────────────────────────────────────────────
+        function renderInv(id) {
+            const M = readMatrix(id);
+            const area = document.getElementById('result-area');
+            const n = M.length;
+
+            if (M.some(r => r.length !== n)) {
+                area.appendChild(errBlock('逆矩阵只能对方阵计算。'));
+                return;
+            }
+
+            const d = det(M);
+            const s1 = stepBlock('规则');
+            const f1 = document.createElement('div');
+            f1.className = 'step-formula';
+            f1.innerHTML =
+                `逆矩阵公式：<span class="hi-r">A⁻¹</span> = (1 / det(A)) × <span class="hi-a">伴随矩阵 adj(A)</span><br>` +
+                `其中 <span class="hi-b">adj(A)[i][j]</span> = (−1)^(i+j) × det(去掉第j行第i列的子矩阵)（注意转置）<br>` +
+                `<br>前提：det(A) ≠ 0`;
+            s1.appendChild(f1);
+            area.appendChild(s1);
+
+            // 行列式
+            const sd = stepBlock('第一步：计算行列式');
+            const fd = document.createElement('div');
+            fd.className = 'step-formula';
+            fd.innerHTML = `det(A) = <span class="${Math.abs(d) < 1e-10 ? 'hi-b' : 'hi-r'}">${fmt(d)}</span>`;
+            sd.appendChild(fd);
+            if (Math.abs(d) < 1e-10) {
+                const err = document.createElement('div');
+                err.className = 'step-formula';
+                err.innerHTML = `<span class="hi-b">行列式为 0，此矩阵是奇异矩阵，不存在逆矩阵！</span>`;
+                sd.appendChild(err);
+                area.appendChild(sd);
+                return;
+            }
+            area.appendChild(sd);
+
+            const inv = inverse(M);
+
+            // 伴随矩阵
+            const sa = stepBlock('第二步：计算伴随矩阵 adj(A)');
+            const fa = document.createElement('div');
+            fa.className = 'step-formula';
+            fa.innerHTML = `各代数余子式 C[i][j] = (−1)^(i+j) × det(M去掉第i行第j列)，然后转置得到伴随矩阵：`;
+            sa.appendChild(fa);
+            const adj = Array.from({ length: n }, () => Array(n).fill(0));
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    const sign = Math.pow(-1, i + j);
+                    const cof = det(minor(M, i, j));
+                    adj[j][i] = sign * cof; // 转置
+                }
+            }
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    const sign = Math.pow(-1, i + j);
+                    const cof = det(minor(M, i, j));
+                    const line = document.createElement('div');
+                    line.className = 'step-formula';
+                    line.innerHTML =
+                        `C[${i}][${j}] = (−1)^${i + j} × det(子矩阵) = ` +
+                        `<span class="hi-a">${fmt(sign)}</span> × <span class="hi-b">${fmt(cof)}</span> = ` +
+                        `<span class="hi-r">${fmt(sign * cof)}</span>  →  adj[${j}][${i}]`;
+                    sa.appendChild(line);
+                }
+            }
+            area.appendChild(sa);
+
+            // 最终结果
+            const s3 = stepBlock(`第三步：A⁻¹ = (1 / ${fmt(d)}) × adj(A)`);
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;';
+            const kSpan = document.createElement('span');
+            kSpan.style.cssText = 'color:var(--accent4);font-size:1.3rem;font-weight:700;';
+            kSpan.textContent = `1/${fmt(d)} ×`;
+            row.appendChild(kSpan);
+            row.appendChild(renderMatrixDisplay(adj));
+            row.appendChild(sym('=', 'eq-sym'));
+            const hiInv = {};
+            inv.forEach((r, i) => r.forEach((_, j) => hiInv[i + ',' + j] = 'hi-r'));
+            row.appendChild(renderMatrixDisplay(inv, hiInv));
+            s3.appendChild(row);
+            area.appendChild(s3);
+
+            // 验证 A × A⁻¹ = I
+            const sv = stepBlock('验证：A × A⁻¹ = 单位矩阵 I');
+            const check = matMult(M, inv);
+            const vrow = document.createElement('div');
+            vrow.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;';
+            vrow.appendChild(renderMatrixDisplay(M));
+            vrow.appendChild(sym('×'));
+            vrow.appendChild(renderMatrixDisplay(inv, hiInv));
+            vrow.appendChild(sym('=', 'eq-sym'));
+            // 把接近0的数显示为0，接近1显示为1
+            const cleaned = check.R.map(row => row.map(v => Math.abs(v) < 1e-9 ? 0 : Math.abs(v - 1) < 1e-9 ? 1 : v));
+            vrow.appendChild(renderMatrixDisplay(cleaned));
+            sv.appendChild(vrow);
+            area.appendChild(sv);
+        }
+
+        // ================================================================
+        //  页面 Tab 切换
+        // ================================================================
+        function switchPage(name, el) {
+            document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.page-panel').forEach(p => p.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('page-' + name).classList.add('active');
+        }
+
+        // ================================================================
+        //  向量子Tab切换
+        // ================================================================
+        function switchVecTab(name, el) {
+            document.querySelectorAll('.vec-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.vec-panel').forEach(p => p.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('vp-' + name).classList.add('active');
+            if (name === 'visual') drawVis('both'); // 默认绘制
+        }
+
+        // ================================================================
+        //  向量工具函数
+        // ================================================================
+
+        /** 读取向量输入 */
+        function readVec(containerId) {
+            return Array.from(document.querySelectorAll('#' + containerId + ' .vec-cell'))
+                .map(inp => parseFloat(inp.value) || 0);
+        }
+
+        /** 渲染向量展示（列向量） */
+        function renderVecDisplay(vec, highlights = {}) {
+            const div = document.createElement('div');
+            div.className = 'vec-display';
+            vec.forEach((v, i) => {
+                const cell = document.createElement('div');
+                cell.className = 'vcell';
+                if (highlights[i]) cell.classList.add(highlights[i]);
+                cell.textContent = fmt(v);
+                div.appendChild(cell);
+            });
+            return div;
+        }
+
+        /** 渲染行向量展示（单行横排） */
+        function renderRowVecDisplay(vec, highlights = {}) {
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:inline-flex;gap:3px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;position:relative;';
+            // 简化括号
+            const lb = document.createElement('span');
+            lb.style.cssText = 'color:var(--text-dim);font-size:1.5rem;line-height:1;display:flex;align-items:center;margin-right:4px;';
+            lb.textContent = '[';
+            const rb = document.createElement('span');
+            rb.style.cssText = 'color:var(--text-dim);font-size:1.5rem;line-height:1;display:flex;align-items:center;margin-left:4px;';
+            rb.textContent = ']';
+            wrap.appendChild(lb);
+            vec.forEach((v, i) => {
+                if (i > 0) {
+                    const comma = document.createElement('span');
+                    comma.style.cssText = 'color:var(--text-dim);margin:0 4px;display:flex;align-items:center;';
+                    comma.textContent = ',';
+                    wrap.appendChild(comma);
+                }
+                const cell = document.createElement('div');
+                cell.className = 'vcell';
+                if (highlights[i]) cell.classList.add(highlights[i]);
+                cell.textContent = fmt(v);
+                wrap.appendChild(cell);
+            });
+            wrap.appendChild(rb);
+            return wrap;
+        }
+
+        // ================================================================
+        //  ① 点积演示
+        // ================================================================
+        function buildDotInputs() {
+            const n = parseInt(document.getElementById('dot-dim').value) || 3;
+            const defaults = [1, 2, 3, 4, 5, 6, 7, 8];
+
+            ['dot-vec-a', 'dot-vec-b'].forEach((id, vecIdx) => {
+                const container = document.getElementById(id);
+                container.innerHTML = '';
+                for (let i = 0; i < n; i++) {
+                    const inp = document.createElement('input');
+                    inp.type = 'number';
+                    inp.className = 'vec-cell';
+                    inp.value = vecIdx === 0 ? (defaults[i] || 1) : (defaults[n - 1 - i] || 1);
+                    container.appendChild(inp);
+                }
+            });
+            document.getElementById('dot-result').innerHTML = '';
+        }
+
+        function runDot() {
+            const a = readVec('dot-vec-a');
+            const b = readVec('dot-vec-b');
+            const area = document.getElementById('dot-result');
+            area.innerHTML = '';
+
+            if (a.length !== b.length) {
+                area.appendChild(errBlock('两向量维度不同，无法计算点积。'));
+                return;
+            }
+
+            // 规则说明
+            const s1 = stepBlock('规则：点积 a · b = Σ aᵢ × bᵢ');
+            const f1 = document.createElement('div');
+            f1.className = 'step-formula';
+            f1.innerHTML = `把<span class="hi-a">a</span>和<span class="hi-b">b</span>的对应元素相乘，然后全部加起来，得到一个<span class="hi-r">标量</span>。`;
+            s1.appendChild(f1);
+            area.appendChild(s1);
+
+            // 逐项展开
+            const s2 = stepBlock('逐项展开');
+            let total = 0;
+            const termParts = [];
+            a.forEach((ai, i) => {
+                const prod = ai * b[i];
+                total += prod;
+                const line = document.createElement('div');
+                line.className = 'step-formula';
+                line.innerHTML =
+                    `<span class="hi-a">a[${i}]</span> × <span class="hi-b">b[${i}]</span> = ` +
+                    `<span class="hi-a">${fmt(ai)}</span> × <span class="hi-b">${fmt(b[i])}</span> = ` +
+                    `<span class="hi-r">${fmt(prod)}</span>`;
+                s2.appendChild(line);
+                termParts.push(`<span class="hi-r">${fmt(prod)}</span>`);
+            });
+            area.appendChild(s2);
+
+            // 求和
+            const s3 = stepBlock('求和 = 点积结果');
+            const f3 = document.createElement('div');
+            f3.className = 'step-formula';
+            f3.innerHTML = termParts.join(' + ') + ` = <span class="hi-r" style="font-size:1.4rem;font-weight:700;">${fmt(total)}</span>`;
+            s3.appendChild(f3);
+            area.appendChild(s3);
+
+            // 向量式展示
+            const s4 = stepBlock('向量式');
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;';
+            const hiA = {};
+            a.forEach((_, i) => hiA[i] = 'hi-a');
+            const hiB = {};
+            b.forEach((_, i) => hiB[i] = 'hi-b');
+            row.appendChild(renderRowVecDisplay(a, hiA));
+            const dot = document.createElement('span');
+            dot.className = 'op-sym'; dot.textContent = '·';
+            row.appendChild(dot);
+            row.appendChild(renderVecDisplay(b, hiB));
+            const eq = document.createElement('span');
+            eq.className = 'op-sym eq-sym'; eq.textContent = '=';
+            row.appendChild(eq);
+            const res = document.createElement('div');
+            res.className = 'big-number'; res.textContent = fmt(total);
+            row.appendChild(res);
+            s4.appendChild(row);
+            area.appendChild(s4);
+        }
+
+        // ================================================================
+        //  ② 外积演示
+        // ================================================================
+        function buildOuterInputs() {
+            const na = parseInt(document.getElementById('outer-dim-a').value) || 3;
+            const nb = parseInt(document.getElementById('outer-dim-b').value) || 3;
+
+            const containerA = document.getElementById('outer-vec-a');
+            containerA.innerHTML = '';
+            for (let i = 0; i < na; i++) {
+                const inp = document.createElement('input');
+                inp.type = 'number'; inp.className = 'vec-cell'; inp.value = i + 1;
+                containerA.appendChild(inp);
+            }
+
+            const containerB = document.getElementById('outer-vec-b');
+            containerB.innerHTML = '';
+            for (let i = 0; i < nb; i++) {
+                const inp = document.createElement('input');
+                inp.type = 'number'; inp.className = 'vec-cell'; inp.value = i + 1;
+                containerB.appendChild(inp);
+            }
+            document.getElementById('outer-result').innerHTML = '';
+        }
+
+        function runOuter() {
+            const a = readVec('outer-vec-a');
+            const b = readVec('outer-vec-b');
+            const area = document.getElementById('outer-result');
+            area.innerHTML = '';
+
+            // 规则
+            const s1 = stepBlock(`规则：外积 a ⊗ b 得到 ${a.length}×${b.length} 矩阵`);
+            const f1 = document.createElement('div');
+            f1.className = 'step-formula';
+            f1.innerHTML = `<span class="hi-r">R[i][j]</span> = <span class="hi-a">a[i]</span> × <span class="hi-b">b[j]</span>，即用 a 的每个元素去乘 b 的每一行。`;
+            s1.appendChild(f1);
+            area.appendChild(s1);
+
+            // 计算结果矩阵
+            const R = a.map(ai => b.map(bj => ai * bj));
+
+            // 分步展示（前9项）
+            const s2 = stepBlock('逐位计算过程');
+            let count = 0;
+            for (let i = 0; i < a.length; i++) {
+                for (let j = 0; j < b.length; j++) {
+                    if (count++ > 16) {
+                        const more = document.createElement('div');
+                        more.className = 'step-formula';
+                        more.style.color = 'var(--text-dim)';
+                        more.textContent = `... 共 ${a.length * b.length} 项（省略剩余）`;
+                        s2.appendChild(more);
+                        break;
+                    }
+                    const line = document.createElement('div');
+                    line.className = 'step-formula';
+                    line.innerHTML =
+                        `<span class="hi-r">R[${i}][${j}]</span> = ` +
+                        `<span class="hi-a">${fmt(a[i])}</span> × ` +
+                        `<span class="hi-b">${fmt(b[j])}</span> = ` +
+                        `<span class="hi-r">${fmt(R[i][j])}</span>`;
+                    s2.appendChild(line);
+                }
+                if (count > 16) break;
+            }
+            area.appendChild(s2);
+
+            // 结果
+            const s3 = stepBlock('外积结果矩阵');
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;';
+            const hiA = {}; a.forEach((_, i) => hiA[i] = 'hi-a');
+            const hiB = {}; b.forEach((_, i) => hiB[i] = 'hi-b');
+            row.appendChild(renderVecDisplay(a, hiA));
+            const x = document.createElement('span');
+            x.className = 'op-sym'; x.textContent = '⊗';
+            row.appendChild(x);
+            row.appendChild(renderRowVecDisplay(b, hiB));
+            row.appendChild(sym('=', 'eq-sym'));
+            const hiR = {};
+            R.forEach((r, i) => r.forEach((_, j) => hiR[i + ',' + j] = 'hi-r'));
+            row.appendChild(renderMatrixDisplay(R, hiR));
+            s3.appendChild(row);
+            area.appendChild(s3);
+        }
+
+        // ================================================================
+        //  ③ 矩阵 × 向量
+        // ================================================================
+        function buildMatVecInputs() {
+            const rows = parseInt(document.getElementById('mv-rows').value) || 2;
+            const cols = parseInt(document.getElementById('mv-cols').value) || 2;
+
+            // 矩阵
+            const gridWrap = document.getElementById('mv-grid');
+            gridWrap.innerHTML = '';
+            const grid = document.createElement('div');
+            grid.className = 'matrix-grid';
+            const defaults2d = [[1, 0], [0, 1], [1, 1], [2, 1]];
+            for (let i = 0; i < rows; i++) {
+                const rowEl = document.createElement('div');
+                rowEl.className = 'matrix-row';
+                for (let j = 0; j < cols; j++) {
+                    const inp = document.createElement('input');
+                    inp.type = 'number'; inp.className = 'matrix-cell';
+                    inp.dataset.row = i; inp.dataset.col = j;
+                    inp.value = (i === j) ? 1 : 0; // 默认单位矩阵
+                    rowEl.appendChild(inp);
+                }
+                grid.appendChild(rowEl);
+            }
+            gridWrap.appendChild(grid);
+
+            // 向量
+            const vecWrap = document.getElementById('mv-vec');
+            vecWrap.innerHTML = '';
+            const vgrid = document.createElement('div');
+            vgrid.className = 'matrix-grid';
+            for (let i = 0; i < cols; i++) {
+                const rowEl = document.createElement('div');
+                rowEl.className = 'matrix-row';
+                const inp = document.createElement('input');
+                inp.type = 'number'; inp.className = 'matrix-cell';
+                inp.value = i + 1;
+                rowEl.appendChild(inp);
+                vgrid.appendChild(rowEl);
+            }
+            vecWrap.appendChild(vgrid);
+
+            document.getElementById('mv-result').innerHTML = '';
+        }
+
+        function runMatVec() {
+            // 读矩阵
+            const gridDiv = document.getElementById('mv-grid');
+            const matRows = gridDiv.querySelectorAll('.matrix-row');
+            const A = Array.from(matRows).map(row =>
+                Array.from(row.querySelectorAll('.matrix-cell')).map(c => parseFloat(c.value) || 0)
+            );
+            // 读向量
+            const vecDiv = document.getElementById('mv-vec');
+            const vecInputs = vecDiv.querySelectorAll('.matrix-cell');
+            const x = Array.from(vecInputs).map(c => parseFloat(c.value) || 0);
+
+            const area = document.getElementById('mv-result');
+            area.innerHTML = '';
+
+            if (A[0].length !== x.length) {
+                area.appendChild(errBlock(`矩阵列数(${A[0].length})必须等于向量维度(${x.length})。`));
+                return;
+            }
+
+            // 规则
+            const s1 = stepBlock('规则：A×x 的结果向量 R[i] = A的第i行 · x（点积）');
+            const f1 = document.createElement('div');
+            f1.className = 'step-formula';
+            f1.innerHTML = `矩阵把向量 x "<strong>变换</strong>"成新向量 Ax。<br>
+        结果的每一维 = 矩阵对应行与 x 做点积。`;
+            s1.appendChild(f1);
+            area.appendChild(s1);
+
+            // 计算
+            const R = A.map(row => row.reduce((s, v, k) => s + v * x[k], 0));
+
+            // 分步
+            const s2 = stepBlock('逐行计算');
+            A.forEach((row, i) => {
+                const terms = row.map((v, k) =>
+                    `<span class="hi-a">${fmt(v)}</span>×<span class="hi-b">${fmt(x[k])}</span>`
+                ).join(' + ');
+                const line = document.createElement('div');
+                line.className = 'step-formula';
+                line.innerHTML =
+                    `<span class="hi-r">R[${i}]</span> = ${terms} = <span class="hi-r">${fmt(R[i])}</span>`;
+                s2.appendChild(line);
+            });
+            area.appendChild(s2);
+
+            // 向量式展示
+            const s3 = stepBlock('运算结果');
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;';
+            row.appendChild(renderMatrixDisplay(A));
+            row.appendChild(sym('×'));
+            const hiX = {}; x.forEach((_, i) => hiX[i + ',0'] = 'hi-b');
+            row.appendChild(renderMatrixDisplay(x.map(v => [v]), hiX));
+            row.appendChild(sym('=', 'eq-sym'));
+            const hiR2 = {}; R.forEach((_, i) => hiR2[i + ',0'] = 'hi-r');
+            row.appendChild(renderMatrixDisplay(R.map(v => [v]), hiR2));
+            s3.appendChild(row);
+            area.appendChild(s3);
+
+            // 几何意义提示
+            if (A.length === 2 && x.length === 2) {
+                const s4 = stepBlock('几何意义（2D）');
+                const f4 = document.createElement('div');
+                f4.className = 'step-formula';
+                f4.innerHTML =
+                    `输入向量 x = (<span class="hi-b">${fmt(x[0])}</span>, <span class="hi-b">${fmt(x[1])}</span>)<br>` +
+                    `变换后   Ax = (<span class="hi-r">${fmt(R[0])}</span>, <span class="hi-r">${fmt(R[1])}</span>)<br><br>` +
+                    `矩阵的列向量是坐标轴的"新方向"：<br>` +
+                    `第1列 (<span class="hi-a">${fmt(A[0][0])}</span>, <span class="hi-a">${fmt(A[1][0])}</span>) = x轴变换后的方向<br>` +
+                    `第2列 (<span class="hi-a">${fmt(A[0][1])}</span>, <span class="hi-a">${fmt(A[1][1])}</span>) = y轴变换后的方向`;
+                s4.appendChild(f4);
+                area.appendChild(s4);
+            }
+        }
+
+        // ================================================================
+        //  ④ 2D 向量可视化
+        // ================================================================
+        let _visMode = 'both';
+
+        function visMode(mode) {
+            _visMode = mode;
+            drawVis(mode);
+        }
+
+        function drawVis(mode) {
+            const canvas = document.getElementById('vec-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width, H = canvas.height;
+            const cx = W / 2, cy = H / 2;
+
+            const ax = parseFloat(document.getElementById('vis-ax').value) || 0;
+            const ay = parseFloat(document.getElementById('vis-ay').value) || 0;
+            const bx = parseFloat(document.getElementById('vis-bx').value) || 0;
+            const by = parseFloat(document.getElementById('vis-by').value) || 0;
+            const k = parseFloat(document.getElementById('vis-k').value) || 1;
+
+            // 计算最大量值，自动缩放
+            const allVals = [Math.abs(ax), Math.abs(ay), Math.abs(bx), Math.abs(by),
+            Math.abs(ax + bx), Math.abs(ay + by), Math.abs(k * ax), Math.abs(k * ay)];
+            const maxVal = Math.max(...allVals, 1);
+            const scale = (W * 0.38) / maxVal; // 留边距
+
+            // 清空
+            ctx.clearRect(0, 0, W, H);
+
+            // 背景
+            ctx.fillStyle = '#161b22';
+            ctx.fillRect(0, 0, W, H);
+
+            // 网格
+            drawGrid(ctx, W, H, cx, cy, scale, maxVal);
+
+            // 坐标轴
+            drawAxes(ctx, W, H, cx, cy);
+
+            // 根据模式画向量
+            if (mode === 'both') {
+                drawArrow(ctx, cx, cy, ax * scale, -ay * scale, '#58a6ff', 'a');
+                drawArrow(ctx, cx, cy, bx * scale, -by * scale, '#f78166', 'b');
+                updateLegend([
+                    { color: '#58a6ff', label: `a = (${ax}, ${ay})` },
+                    { color: '#f78166', label: `b = (${bx}, ${by})` }
+                ]);
+                updateDesc(`向量 a = (${ax}, ${ay})，向量 b = (${bx}, ${by})`);
+            } else if (mode === 'add') {
+                // 画 a、b（平移到 a 末端）、结果 a+b
+                drawArrow(ctx, cx, cy, ax * scale, -ay * scale, '#58a6ff', 'a');
+                drawArrow(ctx, cx + ax * scale, cy - ay * scale, bx * scale, -by * scale, '#f78166', 'b');
+                drawArrow(ctx, cx, cy, (ax + bx) * scale, -(ay + by) * scale, '#3fb950', `a+b=(${fmt(ax + bx)},${fmt(ay + by)})`);
+                updateLegend([
+                    { color: '#58a6ff', label: `a = (${ax}, ${ay})` },
+                    { color: '#f78166', label: `b = (${bx}, ${by})` },
+                    { color: '#3fb950', label: `a+b = (${fmt(ax + bx)}, ${fmt(ay + by)})` }
+                ]);
+                updateDesc(`向量加法（平行四边形法则）：a + b = (${fmt(ax + bx)}, ${fmt(ay + by)})`);
+            } else if (mode === 'sub') {
+                drawArrow(ctx, cx, cy, ax * scale, -ay * scale, '#58a6ff', 'a');
+                drawArrow(ctx, cx, cy, bx * scale, -by * scale, '#f78166', 'b');
+                drawArrow(ctx, cx, cy, (ax - bx) * scale, -(ay - by) * scale, '#3fb950', `a-b=(${fmt(ax - bx)},${fmt(ay - by)})`);
+                // 画从b到a的箭头（几何含义）
+                ctx.setLineDash([6, 4]);
+                drawArrow(ctx, cx + bx * scale, cy - by * scale, (ax - bx) * scale, -(ay - by) * scale, '#d2a8ff', '');
+                ctx.setLineDash([]);
+                updateLegend([
+                    { color: '#58a6ff', label: `a = (${ax}, ${ay})` },
+                    { color: '#f78166', label: `b = (${bx}, ${by})` },
+                    { color: '#3fb950', label: `a-b = (${fmt(ax - bx)}, ${fmt(ay - by)})` }
+                ]);
+                updateDesc(`向量减法：a - b = (${fmt(ax - bx)}, ${fmt(ay - by)})，紫色虚线是从 b 到 a 的方向`);
+            } else if (mode === 'scale') {
+                drawArrow(ctx, cx, cy, ax * scale, -ay * scale, '#58a6ff', `a=(${ax},${ay})`);
+                drawArrow(ctx, cx, cy, k * ax * scale, -k * ay * scale, '#3fb950', `${fmt(k)}a=(${fmt(k * ax)},${fmt(k * ay)})`);
+                updateLegend([
+                    { color: '#58a6ff', label: `a = (${ax}, ${ay})` },
+                    { color: '#3fb950', label: `${fmt(k)}a = (${fmt(k * ax)}, ${fmt(k * ay)})` }
+                ]);
+                updateDesc(`数乘：${fmt(k)} × a = (${fmt(k * ax)}, ${fmt(k * ay)})。k>1 拉伸，0<k<1 缩短，k<0 反向。`);
+            }
+        }
+
+        function drawGrid(ctx, W, H, cx, cy, scale, maxVal) {
+            ctx.strokeStyle = '#21262d';
+            ctx.lineWidth = 1;
+            const step = scale; // 每单位一格
+            // 只画几条主要格线
+            for (let i = -Math.ceil(maxVal) - 1; i <= Math.ceil(maxVal) + 1; i++) {
+                const x = cx + i * scale;
+                const y = cy + i * scale;
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+            }
+            // 单位标注
+            ctx.fillStyle = '#8b949e';
+            ctx.font = '10px monospace';
+            ctx.textAlign = 'center';
+            for (let i = -Math.ceil(maxVal); i <= Math.ceil(maxVal); i++) {
+                if (i === 0) continue;
+                const x = cx + i * scale;
+                const y = cy + i * scale;
+                ctx.fillText(i, x, cy + 14);
+                ctx.fillText(i, cx + 4, y + 3);
+            }
+            ctx.fillText('0', cx + 4, cy + 14);
+        }
+
+        function drawAxes(ctx, W, H, cx, cy) {
+            ctx.strokeStyle = '#30363d';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+            // 轴标签
+            ctx.fillStyle = '#8b949e'; ctx.font = '12px sans-serif';
+            ctx.fillText('x', W - 14, cy - 8);
+            ctx.fillText('y', cx + 8, 14);
+        }
+
+        function drawArrow(ctx, ox, oy, dx, dy, color, label) {
+            if (dx === 0 && dy === 0) return;
+            const ex = ox + dx, ey = oy + dy;
+            const angle = Math.atan2(dy, dx);
+            const headLen = 12;
+
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2.5;
+
+            // 主线
+            ctx.beginPath();
+            ctx.moveTo(ox, oy);
+            ctx.lineTo(ex, ey);
+            ctx.stroke();
+
+            // 箭头头
+            ctx.beginPath();
+            ctx.moveTo(ex, ey);
+            ctx.lineTo(ex - headLen * Math.cos(angle - 0.4), ey - headLen * Math.sin(angle - 0.4));
+            ctx.lineTo(ex - headLen * Math.cos(angle + 0.4), ey - headLen * Math.sin(angle + 0.4));
+            ctx.closePath();
+            ctx.fill();
+
+            // 标签
+            if (label) {
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillStyle = color;
+                const lx = ex + 14 * Math.cos(angle + 0.3);
+                const ly = ey + 14 * Math.sin(angle + 0.3);
+                ctx.fillText(label, lx, ly);
+            }
+        }
+
+        function updateLegend(items) {
+            const lg = document.getElementById('vis-legend');
+            if (!lg) return;
+            lg.innerHTML = items.map(it =>
+                `<div class="legend-item">
+            <div class="legend-dot" style="background:${it.color}"></div>
+            <span>${it.label}</span>
+        </div>`
+            ).join('');
+        }
+
+        function updateDesc(text) {
+            const d = document.getElementById('vis-desc');
+            if (!d) return;
+            d.style.display = 'block';
+            d.innerHTML = `<div class="step-formula">${text}</div>`;
+        }
+
+        // ================================================================
+        //  初始化
+        // ================================================================
+        window.addEventListener('DOMContentLoaded', () => {
+            buildGrid('A');
+            buildGrid('B');
+
+            // 回车触发重建
+            ['a-rows', 'a-cols'].forEach(id =>
+                document.getElementById(id).addEventListener('change', () => buildGrid('A'))
+            );
+            ['b-rows', 'b-cols'].forEach(id =>
+                document.getElementById(id).addEventListener('change', () => buildGrid('B'))
+            );
+
+            // 数乘时实时更新
+            document.getElementById('scalar-k').addEventListener('input', () => {
+                if (currentOp === 'scalar') renderScalar();
+            });
+
+            // 向量模块初始化
+            buildDotInputs();
+            buildOuterInputs();
+            buildMatVecInputs();
+
+            // 可视化实时更新
+            ['vis-ax', 'vis-ay', 'vis-bx', 'vis-by', 'vis-k'].forEach(id => {
+                document.getElementById(id).addEventListener('input', () => drawVis(_visMode));
+            });
+        });
+    </script>
+</body>
+
+</html>
