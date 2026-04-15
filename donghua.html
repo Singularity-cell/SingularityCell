@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Singularity</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background-color: #000000;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+        }
+
+        /* 标题文字 */
+        .title {
+            position: absolute;
+            top: 25%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffffff;
+            font-size: 48px;
+            font-weight: 300;
+            letter-spacing: 8px;
+            opacity: 0.9;
+        }
+
+        /* 中心圆点 */
+        .center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        /* 中间横线 */
+        .horizontal-line {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%;
+            /* 不连接到屏幕两侧 */
+            height: 2px;
+            background: linear-gradient(to right,
+                    transparent,
+                    rgba(255, 255, 255, 0.2),
+                    rgba(255, 255, 255, 0.8),
+                    rgba(255, 255, 255, 0.8),
+                    rgba(255, 255, 255, 0.2),
+                    transparent);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6),
+                0 0 30px rgba(255, 255, 255, 0.3);
+        }
+
+        /* 波纹容器 */
+        .ripple-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+        }
+
+        /* 波纹样式 */
+        .ripple {
+            position: absolute;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: ripple-expand 4s ease-out forwards;
+        }
+
+        @keyframes ripple-expand {
+            0% {
+                width: 16px;
+                height: 16px;
+                opacity: 0.8;
+                transform: translate(-50%, -50%);
+            }
+
+            100% {
+                width: 800px;
+                height: 800px;
+                opacity: 0;
+                transform: translate(-50%, -50%);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="title">Singularity</div>
+    <div class="horizontal-line"></div>
+    <div class="center-dot"></div>
+    <div class="ripple-container" id="rippleContainer"></div>
+
+    <script>
+        const rippleContainer = document.getElementById('rippleContainer');
+
+        // 每2秒生成一个新波纹
+        function createRipple() {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            rippleContainer.appendChild(ripple);
+
+            // 动画结束后移除元素，防止内存泄漏
+            setTimeout(() => {
+                ripple.remove();
+            }, 4000);
+        }
+
+        // 立即创建第一个波纹
+        createRipple();
+
+        // 周期性创建波纹
+        setInterval(createRipple, 2000);
+    </script>
+</body>
+
+</html>
