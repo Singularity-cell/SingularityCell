@@ -1,0 +1,32 @@
+/* SpaceX 设计变量 */
+:root {
+    /* 颜色 */
+    --color-space-black: #000000;
+    --color-spectral-white: #f0f0fa;
+    --color-ghost-surface: rgba(240, 240, 250, 0.1);
+    --color-dark-overlay: rgba(0, 0, 0, 0.5);
+
+    /* 字体 */
+    --font-family-display: "D-DIN-Bold", sans-serif;
+    --font-family-base: "D-DIN", sans-serif;
+
+    /* 字号 */
+    --font-size-body: 16px;
+    --font-size-nav: 13px;
+
+    /* 间距 */
+    --space-12: 12px;
+    --space-24: 24px;
+    --space-30: 30px;
+
+    /* 圆角 */
+    --radius-small: 4px;
+    --radius-large: 32px;
+
+    /* 项目原有变量（简化版） */
+    --color-bg: var(--color-space-black);
+    --color-text: var(--color-spectral-white);
+    --color-border: #333333;
+    --nav-height: 80px;
+    --link-size: var(--font-size-nav);
+}

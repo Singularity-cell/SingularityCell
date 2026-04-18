@@ -1,0 +1,72 @@
+.nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--nav-height);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    background-color: rgba(0, 0, 0, 0.95);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    z-index: 1001;
+}
+
+.logo img {
+    width: 240px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.desktop-nav {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.center-nav {
+    display: flex;
+    gap: 32px;
+}
+
+.center-nav a {
+    position: relative;
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: var(--link-size);
+    font-weight: 500;
+    padding: 8px 0;
+    transition: color 0.3s ease;
+}
+
+.center-nav a:hover {
+    color: #ffffff;
+}
+
+.center-nav a::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--color-text);
+    transition: width 0.3s ease;
+}
+
+.center-nav a:hover::before {
+    width: 100%;
+}
+
+h1 {
+    text-align: center;
+    margin-top: calc(var(--nav-height));
+    font-size: 48px;
+}
