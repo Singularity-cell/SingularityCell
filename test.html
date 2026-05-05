@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Anime.js 测试</title>
+    <style>
+        #box {
+            width: 100px;
+            height: 100px;
+            background: #2563eb;
+            border-radius: 8px;
+            margin-top: 50px;
+            margin-left: 50px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="box"></div>
+
+    <!-- 引入你本地装好的 animejs -->
+    <script src="./node_modules/animejs/dist/anime.min.js"></script>
+
+    <script>
+        // 写一个简单动画：平移 + 旋转 + 循环
+        anime({
+            targets: '#box',
+            translateX: 300,
+            rotate: 360,
+            duration: 2000,
+            loop: true,
+            alternate: true,
+            easing: 'easeInOutSine'
+        });
+    </script>
+
+</body>
+
+</html>

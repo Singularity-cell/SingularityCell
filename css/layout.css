@@ -47,7 +47,7 @@
 }
 
 .center-nav a:hover {
-    color: #ffffff;
+    color: var(--color-text);
 }
 
 .center-nav a::before {

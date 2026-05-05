@@ -6,6 +6,9 @@
 - 技术栈：原生HTML/CSS/JS + Python后端
 - 适配平台：Google Stitch
 - 框架状态：已放弃Vue 3迁移，恢复原生开发
+- **旧路径**：`G:\03Html\SingularityCell`（已迁移，不再使用）
+- **当前工作路径**：`Z:\Web\SingularityCell`（双系统共享盘，2026-05-05迁移完成）
+- Git远端：`git@github.com:Singularity-cell/SingularityCell.git`（main分支）
 
 ## 底层协作规则（最高优先级，不可违反）
 1. **先诊断，不动手**：回复只告知"为什么出问题"和"怎么解决（思路方向）"，**绝不直接修改代码或文件**
