@@ -28,17 +28,23 @@
 - 已完成原生开发到Vue 3的全面迁移，解决了文件臃肿和重复代码问题
 - 用户决定放弃Vue 3框架，恢复原生开发，项目已清理所有Vue相关文件
 - 已完成全量重构规划，输出5阶段分步方案，核心原则：零视觉变化、职责单一、原生技术栈
+- 2026-05-05 已清理 animejs 依赖（删除 package.json 依赖、node_modules/animejs、test.html），项目目前零npm依赖
 
-## 项目文件结构（原生开发）
+## 项目文件结构（原生开发，2026-05-05 更新）
 - `index.html` - 主页面，包含波纹动画和fetch加载header
 - `css/`
-  - `style.css` - 全局样式和导航栏样式
-  - `animation.css` - 波纹动画专用样式
+  - `reset.css` - CSS重置（*{margin:0;padding:0;box-sizing:border-box}）
+  - `variables.css` - 设计变量（颜色/字体/间距/圆角定义在:root）
+  - `layout.css` - 导航栏样式（固定顶栏、下划线动画）
+  - `animations.css` - 波纹动画、中心圆点、渐变横线
+- `js/modules/`
+  - `header-loader.js` - fetch加载导航栏
+  - `ripple-animation.js` - 周期性波纹生成动画
+  - （根目录）`logo-interaction.js` - 空文件，待开发
 - `pages/`
   - `header.html` - 导航栏组件
-  - `matrix.html` - matrix页面
-  - `pratice-matrix.html` - 练习matrix页面
-  - （其他页面）
+  - `matrix.html` - 简单占位页（CSS引用已废弃）
+  - `pratice-matrix.html` - 矩阵运算工具（700+行内联样式）
 - `res/`
   - `SINGULARITY.png` - LOGO图片
-- `backup/` - 原有文件备份（如果需要恢复）
+- `backup/css-original/` - 旧版CSS备份（重构前的style.css + animation.css）
